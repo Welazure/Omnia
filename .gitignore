@@ -1,0 +1,66 @@
+# Environment and secrets
+.env
+.env.*.local
+
+# .NET build output
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+artifacts/
+*.dll
+*.pdb
+*.exe
+
+# IDE / user-specific
+.vs/
+.vscode/
+*.user
+*.suo
+*.rsuser
+*.userosscache
+*.sln.docstates
+
+# Rider / IntelliJ
+.idea/
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+project.lock.json
+project.fragment.lock.json
+
+# Test results and coverage
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Entity Framework
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+
+# Publish output
+publish/
+*.publishsettings
+PublishProfiles/
+
+# Logs
+[Ll]og/
+[Ll]ogs/
+*.log
+
+# Node tooling
+node_modules/
+
+# Docker overrides
+docker-compose.override.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
