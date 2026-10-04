@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace Omnia.Client.Views;
 
-public partial class MainView : UserControl
+public partial class PlaceholderView : UserControl
 {
-    public MainView()
+    public PlaceholderView()
     {
         InitializeComponent();
     }

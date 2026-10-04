@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace Omnia.Client.Views;
 
-public partial class MainView : UserControl
+public partial class LoginView : UserControl
 {
-    public MainView()
+    public LoginView()
     {
         InitializeComponent();
     }

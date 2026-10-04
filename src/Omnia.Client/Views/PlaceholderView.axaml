@@ -4,7 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Omnia.Client.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Omnia.Client.Views.MainView"
-             x:DataType="vm:ShellViewModel">
-    <ContentControl Content="{Binding CurrentPage}" />
+             x:Class="Omnia.Client.Views.PlaceholderView"
+             x:DataType="vm:PlaceholderViewModel">
+    <TextBlock Text="{Binding Title}"
+               FontSize="24"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center" />
 </UserControl>

@@ -7,6 +7,6 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Omnia.Client.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
-        Title="Omnia.Client">
+        Title="Omnia">
         <views:MainView />
 </Window>
