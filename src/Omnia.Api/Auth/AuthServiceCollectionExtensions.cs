@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Omnia.Api.Data;
 using Omnia.Api.Services;
+using Omnia.Shared.Realtime;
 
 namespace Omnia.Api.Auth;
 
@@ -39,5 +40,17 @@ public static class AuthServiceCollectionExtensions
             ClockSkew = TimeSpan.Zero,
             NameClaimType = JwtRegisteredClaimNames.Email
         };
+        bearer.Events = new JwtBearerEvents { OnMessageReceived = ReadAccessTokenFromQuery };
+    }
+
+    private static Task ReadAccessTokenFromQuery(MessageReceivedContext context)
+    {
+        var accessToken = context.Request.Query["access_token"];
+        if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments(HubRoutes.Clips))
+        {
+            context.Token = accessToken;
+        }
+
+        return Task.CompletedTask;
     }
 }
