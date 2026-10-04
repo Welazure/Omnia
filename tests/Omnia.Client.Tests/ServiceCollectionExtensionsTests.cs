@@ -64,6 +64,24 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public async Task AddOmniaClient_RegistersClipboardCapability()
+    {
+        await using var provider = BuildProvider();
+
+        Assert.Equal(ClipboardCapability.Supported, provider.GetRequiredService<ClipboardCapability>());
+    }
+
+    [Fact]
+    public async Task AddOmniaClient_ResolvesClipboardMonitorServices()
+    {
+        await using var provider = BuildProvider();
+
+        Assert.NotNull(provider.GetRequiredService<IClipboardMonitor>());
+        Assert.NotNull(provider.GetRequiredService<IClipboardTickSource>());
+        Assert.NotNull(provider.GetRequiredService<ClipboardWriteGuard>());
+    }
+
+    [Fact]
     public async Task AddOmniaClient_AppliesConfigureToResolvedOptions()
     {
         var services = new ServiceCollection();

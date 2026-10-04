@@ -23,6 +23,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IUiDispatcher, AvaloniaUiDispatcher>();
         services.AddSingleton<AvaloniaClipboardService>();
         services.AddSingleton<IClipboardService>(provider => provider.GetRequiredService<AvaloniaClipboardService>());
+        services.AddSingleton(typeof(ClipboardCapability), ClipboardCapability.Supported);
+        services.AddSingleton<ClipboardWriteGuard>();
+        services.AddSingleton<IClipboardTickSource>(_ => new PeriodicClipboardTickSource(PeriodicClipboardTickSource.DefaultInterval));
+        services.AddSingleton<IClipboardMonitor, PollingClipboardMonitor>();
         services.AddSingleton<ToastDelay>(_ => cancellationToken => Task.Delay(ToastDuration, cancellationToken));
         services.AddTransient<LoginViewModel>();
         services.AddSingleton<ClipboardViewModel>();
