@@ -25,6 +25,8 @@ public sealed class FakeClipSyncService : IClipSyncService
 
     public int StartCalls { get; private set; }
 
+    public int StopCalls { get; private set; }
+
     public string? LastAccessToken { get; private set; }
 
     public Exception? ThrowOnStart { get; set; }
@@ -43,13 +45,19 @@ public sealed class FakeClipSyncService : IClipSyncService
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken cancellationToken = default)
+    {
+        StopCalls++;
+        return Task.CompletedTask;
+    }
 
     public Task RefreshAsync(CancellationToken cancellationToken = default)
     {
         ClipsChanged?.Invoke(this, EventArgs.Empty);
         return Task.CompletedTask;
     }
+
+    public void RaiseClipsChanged() => ClipsChanged?.Invoke(this, EventArgs.Empty);
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

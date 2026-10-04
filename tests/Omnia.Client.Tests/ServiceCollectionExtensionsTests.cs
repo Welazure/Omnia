@@ -40,6 +40,29 @@ public sealed class ServiceCollectionExtensionsTests
         Assert.IsType<LoginViewModel>(page);
     }
 
+    [Fact]
+    public async Task AddOmniaClient_PageFactory_CreatesWorkspaceAndAccountPages()
+    {
+        await using var provider = BuildProvider();
+
+        var factory = provider.GetRequiredService<IPageFactory>();
+
+        Assert.IsType<ClipboardViewModel>(factory.CreateWorkspace());
+        Assert.IsType<AccountViewModel>(factory.CreateAccount());
+    }
+
+    [Fact]
+    public async Task AddOmniaClient_ResolvesWorkspaceServices()
+    {
+        await using var provider = BuildProvider();
+
+        Assert.NotNull(provider.GetRequiredService<IClipboardService>());
+        Assert.NotNull(provider.GetRequiredService<IUiDispatcher>());
+        Assert.NotNull(provider.GetRequiredService<ToastDelay>());
+        Assert.NotNull(provider.GetRequiredService<ClipboardViewModel>());
+        Assert.NotNull(provider.GetRequiredService<AccountViewModel>());
+    }
+
     private static ServiceProvider BuildProvider()
     {
         var services = new ServiceCollection();

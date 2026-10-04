@@ -11,6 +11,10 @@ public sealed class FakeNavigationService : INavigationService
 
     public int ShowWorkspaceCalls { get; private set; }
 
+    public int ShowLoginCalls { get; private set; }
+
+    public int ShowAccountCalls { get; private set; }
+
     public Task StartAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     public Task ShowWorkspaceAsync(CancellationToken cancellationToken = default)
@@ -21,7 +25,15 @@ public sealed class FakeNavigationService : INavigationService
         return Task.CompletedTask;
     }
 
-    public void ShowLogin() => CurrentPage = new StubViewModel();
+    public void ShowLogin()
+    {
+        ShowLoginCalls++;
+        CurrentPage = new StubViewModel();
+    }
 
-    public void ShowAccount() => CurrentPage = new StubViewModel();
+    public void ShowAccount()
+    {
+        ShowAccountCalls++;
+        CurrentPage = new StubViewModel();
+    }
 }
