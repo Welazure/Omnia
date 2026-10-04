@@ -1,6 +1,4 @@
 using System.Net;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 
 namespace Omnia.Api.Tests;
@@ -13,8 +11,7 @@ public class StartupMigrationTests(PostgresContainerFixture fixture)
     {
         var connectionString = await fixture.CreateDatabaseAsync();
 
-        using var factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder => builder.UseSetting("ConnectionStrings:Default", connectionString));
+        using var factory = ApiFactory.Create(connectionString);
 
         using var client = factory.CreateClient();
         var response = await client.GetAsync("/health");
