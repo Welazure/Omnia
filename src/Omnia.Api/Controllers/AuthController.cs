@@ -1,6 +1,6 @@
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Omnia.Api.Auth;
 using Omnia.Api.Services;
 using Omnia.Shared.Contracts;
 
@@ -42,7 +42,7 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     [HttpGet("me")]
     public async Task<ActionResult<UserDto>> Me(CancellationToken cancellationToken)
     {
-        if (!TryGetUserId(out var userId))
+        if (User.GetUserId() is not { } userId)
         {
             return Unauthorized();
         }
@@ -65,9 +65,6 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
 
         return ModelState.IsValid;
     }
-
-    private bool TryGetUserId(out Guid userId) =>
-        Guid.TryParse(User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value, out userId);
 
     private static ProblemDetails EmailConflict() => new()
     {
