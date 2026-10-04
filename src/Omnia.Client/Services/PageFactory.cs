@@ -7,7 +7,7 @@ public sealed class PageFactory(IServiceProvider serviceProvider) : IPageFactory
 {
     public ViewModelBase CreateLogin() => serviceProvider.GetRequiredService<LoginViewModel>();
 
-    public ViewModelBase CreateWorkspace() => new PlaceholderViewModel("Workspace");
+    public ViewModelBase CreateWorkspace() => serviceProvider.GetRequiredService<ClipboardViewModel>();
 
-    public ViewModelBase CreateAccount() => new PlaceholderViewModel("Account");
+    public ViewModelBase CreateAccount() => serviceProvider.GetRequiredService<AccountViewModel>();
 }

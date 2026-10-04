@@ -5,6 +5,7 @@
              xmlns:vm="using:Omnia.Client.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Omnia.Client.Views.MainView"
-             x:DataType="vm:ShellViewModel">
+             x:DataType="vm:ShellViewModel"
+             Background="#000000">
     <ContentControl Content="{Binding CurrentPage}" />
 </UserControl>

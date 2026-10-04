@@ -29,25 +29,35 @@ public partial class App : Application
 
         var shell = services.GetRequiredService<ShellViewModel>();
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger<App>();
+        var clipboard = services.GetRequiredService<AvaloniaClipboardService>();
         _ = StartShellAsync(shell, logger);
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
+            var window = new MainWindow
             {
                 DataContext = shell
             };
+            desktop.MainWindow = window;
+            clipboard.Attach(window);
         }
         else if (ApplicationLifetime is IActivityApplicationLifetime singleViewFactoryApplicationLifetime)
         {
-            singleViewFactoryApplicationLifetime.MainViewFactory = () => new MainView { DataContext = shell };
+            singleViewFactoryApplicationLifetime.MainViewFactory = () =>
+            {
+                var view = new MainView { DataContext = shell };
+                clipboard.Attach(view);
+                return view;
+            };
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
-            singleViewPlatform.MainView = new MainView
+            var view = new MainView
             {
                 DataContext = shell
             };
+            singleViewPlatform.MainView = view;
+            clipboard.Attach(view);
         }
 
         base.OnFrameworkInitializationCompleted();

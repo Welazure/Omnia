@@ -1,0 +1,83 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Omnia.Client.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="720"
+             x:Class="Omnia.Client.Views.ClipboardView"
+             x:DataType="vm:ClipboardViewModel"
+             Background="#000000">
+    <Grid RowDefinitions="Auto,Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="16,12,16,8">
+            <TextBlock Text="Omnia"
+                       Foreground="#FFFFFF"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center" />
+            <Border Grid.Column="1"
+                    Width="9" Height="9" CornerRadius="5"
+                    Background="#4CAF50"
+                    IsVisible="{Binding IsConnected}"
+                    VerticalAlignment="Center"
+                    Margin="0,0,12,0" />
+            <Border Grid.Column="1"
+                    Width="9" Height="9" CornerRadius="5"
+                    Background="#FFA500"
+                    IsVisible="{Binding IsReconnecting}"
+                    VerticalAlignment="Center"
+                    Margin="0,0,12,0" />
+            <Button Grid.Column="2"
+                    Content="Account"
+                    Command="{Binding OpenAccountCommand}"
+                    Background="Transparent"
+                    Foreground="#9E9E9E"
+                    Padding="4"
+                    FontSize="12" />
+        </Grid>
+
+        <StackPanel Grid.Row="1" Margin="16,4,16,8" Spacing="6">
+            <TextBox x:Name="ClipInput"
+                     Text="{Binding Input}"
+                     PlaceholderText="Type a clip and press Enter"
+                     Background="#121212"
+                     Foreground="#FFFFFF"
+                     AcceptsReturn="False"
+                     KeyDown="OnInputKeyDown" />
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="#E06C75"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding HasError}" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="2">
+            <ItemsControl ItemsSource="{Binding Clips}" Margin="16,0,16,16">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ClipListItem">
+                        <Border Background="#0A0A0A"
+                                CornerRadius="6"
+                                Padding="12"
+                                Margin="0,0,0,8"
+                                PointerPressed="OnItemPointerPressed"
+                                PointerMoved="OnItemPointerMoved"
+                                PointerReleased="OnItemPointerReleased">
+                            <TextBlock Text="{Binding Content}"
+                                       Foreground="#FFFFFF"
+                                       TextWrapping="Wrap" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="2"
+                IsVisible="{Binding IsToastVisible}"
+                Background="#1E1E1E"
+                CornerRadius="6"
+                Padding="14,8"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Margin="0,0,0,24">
+            <TextBlock Text="{Binding ToastMessage}" Foreground="#FFFFFF" />
+        </Border>
+    </Grid>
+</UserControl>
