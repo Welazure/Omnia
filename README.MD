@@ -23,8 +23,12 @@ See [Architecture.MD](Architecture.MD) for the full design.
 - [.NET SDK 10](https://dotnet.microsoft.com/download) or later
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for PostgreSQL and the API)
 - Avalonia templates: `dotnet new install Avalonia.Templates`
-- For Android: the Android SDK and a JDK
-- For iOS: macOS with Xcode
+- For Android: the `android` workload and the Android SDK with a JDK (`dotnet workload install android`)
+- For iOS: macOS with Xcode and the `ios` workload (`dotnet workload install ios`)
+
+The Desktop and Browser heads need no extra workloads. A repo-wide `dotnet build`/`dotnet test` also builds the
+mobile heads, so it requires the `android`/`ios` workloads; the commands in [Build](#build) and [Test](#test) below
+show what to run without them.
 
 ## Quick Start
 
@@ -44,12 +48,19 @@ docker compose up --build
 
 The API listens on `http://localhost:8080` and applies EF Core migrations on startup.
 
-To run the API locally instead of in Docker (with PostgreSQL still in Docker):
+To run the API locally instead of in Docker (with PostgreSQL still in Docker), supply the connection string and JWT
+secret as environment variables. The Compose values use the in-network host name `postgres`, so point a local run at
+`localhost` and reuse the same credentials from your `.env`:
 
 ```bash
 docker compose up -d postgres
+export ConnectionStrings__Default="Host=localhost;Port=5432;Database=omnia;Username=omnia;Password=YOUR_POSTGRES_PASSWORD"
+export Jwt__Secret="YOUR_JWT_SECRET"
 dotnet run --project src/Omnia.Api
 ```
+
+The `http` launch profile serves the API on `http://localhost:5242`. Point the client at it with
+`OMNIA_API_BASE_URL=http://localhost:5242`.
 
 ### 2. Run the client
 
@@ -59,27 +70,30 @@ Desktop:
 dotnet run --project src/Omnia.Client.Desktop
 ```
 
-Browser (WebAssembly):
+Browser (WebAssembly) — serves the app on `http://localhost:5000`:
 
 ```bash
 dotnet run --project src/Omnia.Client.Browser
 ```
 
-Android:
+Android (requires the `android` workload and Android SDK):
 
 ```bash
 dotnet build src/Omnia.Client.Android -t:Run -f net10.0-android
 ```
 
-iOS:
+iOS (requires macOS, Xcode, and the `ios` workload):
 
 ```bash
 dotnet build src/Omnia.Client.iOS -t:Run -f net10.0-ios
 ```
 
+Point any head at a non-default API with the `OMNIA_API_BASE_URL` environment variable. The Browser head forces the
+SignalR WebSockets transport (skipping negotiation), which is required for WebAssembly.
+
 ## Configuration
 
-Server settings come from environment variables (or `appsettings.Development.json` for local runs):
+Server settings come from environment variables (as in the local-run example above):
 
 | Variable                    | Purpose                                  |
 |-----------------------------|------------------------------------------|
@@ -87,10 +101,11 @@ Server settings come from environment variables (or `appsettings.Development.jso
 | `Jwt__Secret`               | HMAC signing key (use a long random value)|
 | `Jwt__Issuer`               | JWT issuer                               |
 | `Jwt__Audience`             | JWT audience                             |
+| `Cors__AllowedOrigins__0`   | Browser client origin allowed by CORS (add `__1`, `__2`, ... for more) |
 
 `.env.example` lists the same keys for Docker Compose. Never commit a real `.env`.
 
-The client reads its API base URL from configuration (default `http://localhost:8080`).
+The client reads its API base URL from the `OMNIA_API_BASE_URL` environment variable (default `http://localhost:8080`).
 
 ## Relay Hosting
 
@@ -108,23 +123,36 @@ user.
 
 ## Build
 
+Build the whole solution (requires the Android/iOS workloads — see Prerequisites):
+
 ```bash
 dotnet build
+```
+
+Without the mobile workloads, build the backend, shared core, and Desktop/Browser heads:
+
+```bash
+dotnet build src/Omnia.Client.Desktop
+dotnet build src/Omnia.Client.Browser
+dotnet build src/Omnia.Api
 ```
 
 ## Test
 
 ```bash
-dotnet test
+dotnet test tests/Omnia.Client.Tests
+dotnet test tests/Omnia.Api.Tests
 ```
 
-Tests use `WebApplicationFactory` with `Testcontainers` to run the API against a real PostgreSQL instance, so Docker
-must be running.
+`Omnia.Client.Tests` runs against fakes and needs no Docker. `Omnia.Api.Tests` uses `WebApplicationFactory` with
+`Testcontainers` to run the API against a real PostgreSQL instance, so Docker must be running.
+
+A repo-wide `dotnet test` also builds the mobile heads and therefore requires the `android`/`ios` workloads.
 
 ## Project Structure
 
 ```
-Omnia.sln
+Omnia.slnx
 ├─ src/
 │  ├─ Omnia.Shared/          # DTOs, routes, hub contract shared by API and client
 │  ├─ Omnia.Api/             # ASP.NET Core Web API, EF Core, SignalR hub, JWT auth
@@ -134,7 +162,8 @@ Omnia.sln
 │  ├─ Omnia.Client.iOS/      # Avalonia iOS head
 │  └─ Omnia.Client.Browser/  # Avalonia WebAssembly head
 └─ tests/
-   └─ Omnia.Api.Tests/       # xUnit integration and unit tests
+   ├─ Omnia.Api.Tests/       # xUnit API integration/unit tests (Testcontainers)
+   └─ Omnia.Client.Tests/    # xUnit client tests (fakes, no network)
 ```
 
 ## How It Works
@@ -153,3 +182,7 @@ Omnia.sln
 - **401 from the API:** the JWT secret differs between the API process and the one that issued the token; make sure
   `Jwt__Secret` is the same everywhere.
 - **Hub never connects over HTTP:** SignalR needs WebSockets or a supported transport; use HTTPS outside local dev.
+- **Browser client blocked with a CORS error:** the API only allows the origins listed in `Cors__AllowedOrigins__*`.
+  Add the browser origin (default local dev origin is `http://localhost:5000`) and restart the API.
+- **`NETSDK1147: workloads must be installed`:** the mobile heads need the `android`/`ios` workloads; run
+  `dotnet workload restore`, or build the Desktop/Browser heads instead.

@@ -100,8 +100,9 @@ Rules:
 - The JWT carries the user id (`sub`) and email, and is signed with an HMAC secret from configuration.
 - REST endpoints are protected with `[Authorize]` and the JWT bearer handler.
 - The SignalR hub is authenticated with the same token, passed via the `access_token` query string.
-- Tokens are stored client-side through `ITokenStore` (OS-protected file on desktop, `SecureStorage` on mobile,
-  browser storage on WASM).
+- Tokens are stored client-side through `ITokenStore`. The desktop implementation writes the JWT to a plaintext
+  file under the user's application-data directory; OS-level encryption, mobile `SecureStorage`, and browser
+  storage are wired in the platform heads (Phase 7).
 
 ## REST API Surface
 
