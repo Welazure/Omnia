@@ -6,5 +6,7 @@ public sealed class ApiOptions
 
     public string BaseUrl { get; set; } = DefaultBaseUrl;
 
+    public bool ForceWebSockets { get; set; }
+
     public Uri BaseUri => new(BaseUrl.TrimEnd('/') + "/");
 }

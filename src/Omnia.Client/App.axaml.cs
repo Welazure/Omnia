@@ -11,6 +11,10 @@ namespace Omnia.Client;
 
 public partial class App : Application
 {
+    public static Action<ApiOptions>? ConfigureClient { get; set; }
+
+    public static Action<IServiceCollection>? ConfigurePlatformServices { get; set; }
+
     private ServiceProvider? services;
 
     public override void Initialize()
@@ -24,7 +28,8 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         var collection = new ServiceCollection();
-        collection.AddOmniaClient();
+        collection.AddOmniaClient(ConfigureClient);
+        ConfigurePlatformServices?.Invoke(collection);
         services = collection.BuildServiceProvider();
 
         var shell = services.GetRequiredService<ShellViewModel>();

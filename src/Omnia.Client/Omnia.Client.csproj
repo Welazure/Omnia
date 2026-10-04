@@ -27,4 +27,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Omnia.Shared\Omnia.Shared.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Omnia.Client.Tests" />
+  </ItemGroup>
 </Project>

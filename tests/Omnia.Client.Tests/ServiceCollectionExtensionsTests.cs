@@ -63,6 +63,16 @@ public sealed class ServiceCollectionExtensionsTests
         Assert.NotNull(provider.GetRequiredService<AccountViewModel>());
     }
 
+    [Fact]
+    public async Task AddOmniaClient_AppliesConfigureToResolvedOptions()
+    {
+        var services = new ServiceCollection();
+        services.AddOmniaClient(options => options.ForceWebSockets = true);
+        await using var provider = services.BuildServiceProvider();
+
+        Assert.True(provider.GetRequiredService<ApiOptions>().ForceWebSockets);
+    }
+
     private static ServiceProvider BuildProvider()
     {
         var services = new ServiceCollection();
