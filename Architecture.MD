@@ -17,7 +17,7 @@ replaces that with user accounts, so the account itself is the sync channel and 
 | Persistence      | PostgreSQL 16 + Entity Framework Core (Npgsql)                    |
 | Realtime         | ASP.NET Core SignalR (WebSockets)                                 |
 | Auth             | Email + password, JWT bearer tokens                               |
-| Client           | Avalonia UI 11 (Desktop, Android, iOS, Browser/WASM)              |
+| Client           | Avalonia UI 12 (Desktop, Android, iOS, Browser/WASM)              |
 | Client MVVM      | CommunityToolkit.Mvvm                                             |
 | Deployment       | Docker Compose (PostgreSQL + API)                                 |
 | UI language      | English                                                           |
