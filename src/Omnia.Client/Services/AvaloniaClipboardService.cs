@@ -13,10 +13,20 @@ public sealed class AvaloniaClipboardService : IClipboardService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var clipboard = target is null ? null : TopLevel.GetTopLevel(target)?.Clipboard;
+        var clipboard = ResolveClipboard();
         if (clipboard is not null)
         {
             await clipboard.SetTextAsync(text);
         }
     }
+
+    public async Task<string?> TryGetTextAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var clipboard = ResolveClipboard();
+        return clipboard is null ? null : await clipboard.TryGetTextAsync();
+    }
+
+    private IClipboard? ResolveClipboard() => target is null ? null : TopLevel.GetTopLevel(target)?.Clipboard;
 }
