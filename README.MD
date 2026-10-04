@@ -12,7 +12,7 @@ The account is the sync channel, so there is no room PIN, no pairing step, and n
 - **Database:** PostgreSQL 16 with Entity Framework Core
 - **Realtime:** ASP.NET Core SignalR
 - **Auth:** Email + password with JWT bearer tokens
-- **Client:** Avalonia UI 11 (Desktop, Android, iOS, Browser/WASM)
+- **Client:** Avalonia UI 12 (Desktop, Android, iOS, Browser/WASM)
 - **Client MVVM:** CommunityToolkit.Mvvm
 - **Deployment:** Docker Compose
 
