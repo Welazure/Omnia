@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Omnia.Api/Omnia.Api.csproj" />
+    <Project Path="src/Omnia.Client.Android/Omnia.Client.Android.csproj" />
+    <Project Path="src/Omnia.Client.Browser/Omnia.Client.Browser.csproj" />
+    <Project Path="src/Omnia.Client.Desktop/Omnia.Client.Desktop.csproj" />
+    <Project Path="src/Omnia.Client.iOS/Omnia.Client.iOS.csproj" />
+    <Project Path="src/Omnia.Client/Omnia.Client.csproj" />
+    <Project Path="src/Omnia.Shared/Omnia.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Omnia.Api.Tests/Omnia.Api.Tests.csproj" />
+  </Folder>
+</Solution>
