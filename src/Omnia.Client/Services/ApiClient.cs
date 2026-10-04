@@ -43,6 +43,20 @@ public sealed class ApiClient(HttpClient httpClient, ITokenStore tokenStore) : I
             return await response.Content.ReadFromJsonAsync<AuthResponse>(cancellationToken);
         }, cancellationToken);
 
+    public Task<UserDto?> GetMeAsync(CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
+        {
+            using var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, ApiRoutes.Me, cancellationToken);
+            using var response = await httpClient.SendAsync(request, cancellationToken);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                return null;
+            }
+
+            EnsureSuccess(response);
+            return await response.Content.ReadFromJsonAsync<UserDto>(cancellationToken);
+        }, cancellationToken);
+
     public Task<IReadOnlyList<ClipDto>> GetClipsAsync(CancellationToken cancellationToken = default) =>
         ExecuteAsync<IReadOnlyList<ClipDto>>(async () =>
         {

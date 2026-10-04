@@ -57,6 +57,28 @@ public sealed class ApiClientTests
     }
 
     [Fact]
+    public async Task GetMeAsync_Success_ReturnsUser()
+    {
+        var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = JsonContent.Create(User)
+        });
+
+        var result = await client.GetMeAsync(CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(User.Email, result.Email);
+    }
+
+    [Fact]
+    public async Task GetMeAsync_Unauthorized_ReturnsNull()
+    {
+        var client = CreateClient(_ => new HttpResponseMessage(HttpStatusCode.Unauthorized));
+
+        Assert.Null(await client.GetMeAsync(CancellationToken.None));
+    }
+
+    [Fact]
     public async Task GetClipsAsync_SendsStoredBearerToken()
     {
         var tokenStore = new FakeTokenStore { Token = "stored-token" };
