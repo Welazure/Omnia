@@ -60,6 +60,10 @@ node_modules/
 # Docker overrides
 docker-compose.override.yml
 
+# Planning / AI workflow artifacts (working documents, not deliverables)
+.code-foundations/
+.claude/
+
 # OS files
 .DS_Store
 Thumbs.db

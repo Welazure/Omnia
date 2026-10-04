@@ -13,7 +13,7 @@ replaces that with user accounts, so the account itself is the sync channel and 
 
 | Layer            | Technology                                                        |
 |------------------|-------------------------------------------------------------------|
-| Backend          | ASP.NET Core Web API (.NET 9)                                     |
+| Backend          | ASP.NET Core Web API (.NET 10)                                    |
 | Persistence      | PostgreSQL 16 + Entity Framework Core (Npgsql)                    |
 | Realtime         | ASP.NET Core SignalR (WebSockets)                                 |
 | Auth             | Email + password, JWT bearer tokens                               |

@@ -8,7 +8,7 @@ The account is the sync channel, so there is no room PIN, no pairing step, and n
 
 ## Stack
 
-- **Backend:** ASP.NET Core Web API (.NET 9)
+- **Backend:** ASP.NET Core Web API (.NET 10)
 - **Database:** PostgreSQL 16 with Entity Framework Core
 - **Realtime:** ASP.NET Core SignalR
 - **Auth:** Email + password with JWT bearer tokens
@@ -20,7 +20,7 @@ See [Architecture.MD](Architecture.MD) for the full design.
 
 ## Prerequisites
 
-- [.NET SDK 9](https://dotnet.microsoft.com/download) or later
+- [.NET SDK 10](https://dotnet.microsoft.com/download) or later
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for PostgreSQL and the API)
 - Avalonia templates: `dotnet new install Avalonia.Templates`
 - For Android: the Android SDK and a JDK
@@ -68,13 +68,13 @@ dotnet run --project src/Omnia.Client.Browser
 Android:
 
 ```bash
-dotnet build src/Omnia.Client.Android -t:Run -f net9.0-android
+dotnet build src/Omnia.Client.Android -t:Run -f net10.0-android
 ```
 
 iOS:
 
 ```bash
-dotnet build src/Omnia.Client.iOS -t:Run -f net9.0-ios
+dotnet build src/Omnia.Client.iOS -t:Run -f net10.0-ios
 ```
 
 ## Configuration
