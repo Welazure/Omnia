@@ -10,5 +10,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Omnia.Api.Tests/Omnia.Api.Tests.csproj" />
+    <Project Path="tests/Omnia.Client.Tests/Omnia.Client.Tests.csproj" />
   </Folder>
 </Solution>
