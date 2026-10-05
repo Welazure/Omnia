@@ -7,7 +7,7 @@ using Omnia.Shared.Http;
 
 namespace Omnia.Client.Services;
 
-public sealed class ApiClient(HttpClient httpClient, ITokenStore tokenStore) : IApiClient
+public sealed class ApiClient(HttpClient httpClient, ITokenStore tokenStore, IDeviceIdStore deviceIdStore) : IApiClient
 {
     public Task<AuthResponse?> RegisterAsync(string email, string password, CancellationToken cancellationToken = default) =>
         ExecuteAsync(async () =>
@@ -67,9 +67,10 @@ public sealed class ApiClient(HttpClient httpClient, ITokenStore tokenStore) : I
             return await response.Content.ReadFromJsonAsync<List<ClipDto>>(cancellationToken) ?? [];
         }, cancellationToken);
 
-    public Task<ClipDto?> CreateClipAsync(string content, string? deviceId, CancellationToken cancellationToken = default) =>
+    public Task<ClipDto?> CreateClipAsync(string content, CancellationToken cancellationToken = default) =>
         ExecuteAsync(async () =>
         {
+            var deviceId = await deviceIdStore.GetDeviceIdAsync(cancellationToken);
             using var request = await CreateAuthorizedRequestAsync(HttpMethod.Post, ApiRoutes.Clips, cancellationToken);
             request.Content = JsonContent.Create(new CreateClipRequest(content, deviceId));
 

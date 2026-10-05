@@ -121,10 +121,34 @@ public sealed class ApiClientTests
             Content = JsonContent.Create(clip)
         });
 
-        var result = await client.CreateClipAsync("hello", null, CancellationToken.None);
+        var result = await client.CreateClipAsync("hello", CancellationToken.None);
 
         Assert.NotNull(result);
         Assert.Equal(clip.Id, result.Id);
+    }
+
+    [Fact]
+    public async Task CreateClipAsync_AttachesPersistedDeviceId()
+    {
+        CreateClipRequest? body = null;
+        var deviceStore = new FakeDeviceIdStore { DeviceId = "device-xyz" };
+        var clip = new ClipDto(Guid.NewGuid(), "hello", "device-xyz", DateTimeOffset.UtcNow);
+        var client = CreateClient(
+            request =>
+            {
+                body = request.Content!.ReadFromJsonAsync<CreateClipRequest>().GetAwaiter().GetResult();
+                return new HttpResponseMessage(HttpStatusCode.Created) { Content = JsonContent.Create(clip) };
+            },
+            deviceStore: deviceStore);
+
+        var result = await client.CreateClipAsync("hello", CancellationToken.None);
+
+        Assert.NotNull(body);
+        Assert.Equal("hello", body.Content);
+        Assert.Equal("device-xyz", body.DeviceId);
+        Assert.Equal(1, deviceStore.GetCalls);
+        Assert.NotNull(result);
+        Assert.Equal("device-xyz", result.DeviceId);
     }
 
     [Fact]
@@ -180,10 +204,11 @@ public sealed class ApiClientTests
 
     private static ApiClient CreateClient(
         Func<HttpRequestMessage, HttpResponseMessage> responder,
-        FakeTokenStore? tokenStore = null)
+        FakeTokenStore? tokenStore = null,
+        FakeDeviceIdStore? deviceStore = null)
     {
         var handler = new FakeHttpMessageHandler(responder);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost/") };
-        return new ApiClient(httpClient, tokenStore ?? new FakeTokenStore());
+        return new ApiClient(httpClient, tokenStore ?? new FakeTokenStore(), deviceStore ?? new FakeDeviceIdStore());
     }
 }

@@ -12,7 +12,7 @@ public interface IApiClient
 
     Task<IReadOnlyList<ClipDto>> GetClipsAsync(CancellationToken cancellationToken = default);
 
-    Task<ClipDto?> CreateClipAsync(string content, string? deviceId, CancellationToken cancellationToken = default);
+    Task<ClipDto?> CreateClipAsync(string content, CancellationToken cancellationToken = default);
 
     Task<bool> DeleteClipAsync(Guid id, CancellationToken cancellationToken = default);
 }

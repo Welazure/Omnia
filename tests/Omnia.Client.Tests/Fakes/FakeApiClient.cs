@@ -39,8 +39,6 @@ public sealed class FakeApiClient : IApiClient
 
     public string? LastCreateContent { get; private set; }
 
-    public string? LastCreateDeviceId { get; private set; }
-
     public Guid? LastDeleteId { get; private set; }
 
     public Task<AuthResponse?> RegisterAsync(string email, string password, CancellationToken cancellationToken = default)
@@ -67,11 +65,10 @@ public sealed class FakeApiClient : IApiClient
         return Task.FromResult(ClipsResult);
     }
 
-    public Task<ClipDto?> CreateClipAsync(string content, string? deviceId, CancellationToken cancellationToken = default)
+    public Task<ClipDto?> CreateClipAsync(string content, CancellationToken cancellationToken = default)
     {
         CreateCalls++;
         LastCreateContent = content;
-        LastCreateDeviceId = deviceId;
         return ThrowOnCreate is null ? Task.FromResult(CreateResult) : Task.FromException<ClipDto?>(ThrowOnCreate);
     }
 

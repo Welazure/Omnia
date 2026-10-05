@@ -13,6 +13,7 @@ public sealed class ServiceCollectionExtensionsTests
 
         Assert.NotNull(provider.GetRequiredService<IApiClient>());
         Assert.NotNull(provider.GetRequiredService<ITokenStore>());
+        Assert.NotNull(provider.GetRequiredService<IDeviceIdStore>());
         Assert.NotNull(provider.GetRequiredService<IRealtimeClient>());
         Assert.NotNull(provider.GetRequiredService<IClipSyncService>());
         Assert.NotNull(provider.GetRequiredService<IPageFactory>());

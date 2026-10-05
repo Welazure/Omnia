@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(options);
         services.AddLogging();
         services.AddSingleton<ITokenStore>(_ => new FileTokenStore());
+        services.AddSingleton<IDeviceIdStore>(_ => new FileDeviceIdStore());
         services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddress = options.BaseUri);
         services.AddSingleton<IHubConnectionFactory, HubConnectionFactory>();
         services.AddSingleton<IRealtimeClient, RealtimeClient>();

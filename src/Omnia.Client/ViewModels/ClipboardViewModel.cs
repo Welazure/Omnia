@@ -78,7 +78,7 @@ public partial class ClipboardViewModel : ViewModelBase
 
         try
         {
-            await apiClient.CreateClipAsync(content, deviceId: null);
+            await apiClient.CreateClipAsync(content);
         }
         catch (ApiException)
         {
