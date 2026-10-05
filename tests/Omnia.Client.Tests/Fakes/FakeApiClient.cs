@@ -41,6 +41,11 @@ public sealed class FakeApiClient : IApiClient
 
     public Guid? LastDeleteId { get; private set; }
 
+    private readonly TaskCompletionSource createSignal =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public Task WaitForCreateAsync() => createSignal.Task;
+
     public Task<AuthResponse?> RegisterAsync(string email, string password, CancellationToken cancellationToken = default)
     {
         RegisterCalls++;
@@ -69,6 +74,7 @@ public sealed class FakeApiClient : IApiClient
     {
         CreateCalls++;
         LastCreateContent = content;
+        createSignal.TrySetResult();
         return ThrowOnCreate is null ? Task.FromResult(CreateResult) : Task.FromException<ClipDto?>(ThrowOnCreate);
     }
 
