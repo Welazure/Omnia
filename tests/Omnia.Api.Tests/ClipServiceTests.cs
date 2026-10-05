@@ -57,6 +57,56 @@ public class ClipServiceTests(PostgresContainerFixture fixture)
     }
 
     [Fact]
+    public async Task CreateAsync_DuplicateOfNewest_ReturnsExistingAndStoresNothing()
+    {
+        var hub = new RecordingHubContext();
+        var (service, context) = await CreateServiceAsync(hub);
+        var caller = await SeedUserAsync(context, "dedup@example.com");
+        var existingId = await SeedClipAsync(context, caller, "same", DateTimeOffset.UtcNow);
+
+        var dto = await service.CreateAsync(caller, new CreateClipRequest("same", "device-2"), CancellationToken.None);
+
+        Assert.Equal(existingId, dto.Id);
+        Assert.Equal("same", dto.Content);
+        Assert.Equal(1, await context.Clips.CountAsync(clip => clip.UserId == caller));
+        Assert.Empty(hub.Created);
+    }
+
+    [Fact]
+    public async Task CreateAsync_NonConsecutiveDuplicate_InsertsNewClip()
+    {
+        var hub = new RecordingHubContext();
+        var (service, context) = await CreateServiceAsync(hub);
+        var caller = await SeedUserAsync(context, "timeline@example.com");
+        await SeedClipAsync(context, caller, "x", DateTimeOffset.UtcNow.AddMinutes(-5));
+        await SeedClipAsync(context, caller, "y", DateTimeOffset.UtcNow);
+
+        var dto = await service.CreateAsync(caller, new CreateClipRequest("x", null), CancellationToken.None);
+
+        Assert.Equal("x", dto.Content);
+        Assert.Equal(3, await context.Clips.CountAsync(clip => clip.UserId == caller));
+        Assert.Single(hub.Created);
+    }
+
+    [Fact]
+    public async Task CreateAsync_OtherUserIdenticalContent_InsertsNewClip()
+    {
+        var hub = new RecordingHubContext();
+        var (service, context) = await CreateServiceAsync(hub);
+        var caller = await SeedUserAsync(context, "b@example.com");
+        var other = await SeedUserAsync(context, "a@example.com");
+        await SeedClipAsync(context, other, "shared", DateTimeOffset.UtcNow);
+
+        var dto = await service.CreateAsync(caller, new CreateClipRequest("shared", null), CancellationToken.None);
+
+        Assert.Equal(1, await context.Clips.CountAsync(clip => clip.UserId == caller));
+        Assert.Equal(caller, (await context.Clips.SingleAsync(clip => clip.Id == dto.Id)).UserId);
+        var (groupName, clip) = Assert.Single(hub.Created);
+        Assert.Equal(ClipHub.GroupName(caller), groupName);
+        Assert.Equal(dto.Id, clip.Id);
+    }
+
+    [Fact]
     public async Task DeleteAsync_OwnClip_RemovesAndNotifies()
     {
         var hub = new RecordingHubContext();

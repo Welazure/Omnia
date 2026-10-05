@@ -23,6 +23,20 @@ public sealed class ClipService(
 
     public async Task<ClipDto> CreateAsync(Guid userId, CreateClipRequest request, CancellationToken cancellationToken)
     {
+        // Deduplicate only against the user's newest clip: the list is a timeline, so identical
+        // content may legitimately reappear later and must not be treated as a global duplicate.
+        var newest = await database.Clips
+            .AsNoTracking()
+            .Where(clip => clip.UserId == userId)
+            .OrderByDescending(clip => clip.CreatedAt)
+            .ThenByDescending(clip => clip.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (newest is not null && newest.Content == request.Content)
+        {
+            return new ClipDto(newest.Id, newest.Content, newest.DeviceId, newest.CreatedAt);
+        }
+
         var clip = new Clip
         {
             Id = Guid.NewGuid(),
