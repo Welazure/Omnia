@@ -31,6 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IClipboardMonitor, PollingClipboardMonitor>();
         services.AddSingleton<ClipboardDebounceDelay>(_ => (duration, cancellationToken) => Task.Delay(duration, cancellationToken));
         services.AddSingleton<ClipboardSyncCoordinator>();
+        services.AddSingleton<RemoteClipApplier>();
         services.AddSingleton<ToastDelay>(_ => cancellationToken => Task.Delay(ToastDuration, cancellationToken));
         services.AddTransient<LoginViewModel>();
         services.AddSingleton<ClipboardViewModel>();

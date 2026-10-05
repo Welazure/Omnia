@@ -89,6 +89,7 @@ public sealed class ServiceCollectionExtensionsTests
 
         Assert.NotNull(provider.GetRequiredService<IAutoSyncSettings>());
         Assert.NotNull(provider.GetRequiredService<ClipboardSyncCoordinator>());
+        Assert.NotNull(provider.GetRequiredService<RemoteClipApplier>());
         Assert.NotNull(provider.GetRequiredService<ClipboardDebounceDelay>());
     }
 
