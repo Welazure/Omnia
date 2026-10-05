@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
         services.AddLogging();
         services.AddSingleton<ITokenStore>(_ => new FileTokenStore());
         services.AddSingleton<IDeviceIdStore>(_ => new FileDeviceIdStore());
+        services.AddSingleton<IAutoSyncSettings>(_ => new FileAutoSyncSettings());
         services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddress = options.BaseUri);
         services.AddSingleton<IHubConnectionFactory, HubConnectionFactory>();
         services.AddSingleton<IRealtimeClient, RealtimeClient>();
@@ -28,6 +29,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ClipboardWriteGuard>();
         services.AddSingleton<IClipboardTickSource>(_ => new PeriodicClipboardTickSource(PeriodicClipboardTickSource.DefaultInterval));
         services.AddSingleton<IClipboardMonitor, PollingClipboardMonitor>();
+        services.AddSingleton<ClipboardDebounceDelay>(_ => (duration, cancellationToken) => Task.Delay(duration, cancellationToken));
+        services.AddSingleton<ClipboardSyncCoordinator>();
         services.AddSingleton<ToastDelay>(_ => cancellationToken => Task.Delay(ToastDuration, cancellationToken));
         services.AddTransient<LoginViewModel>();
         services.AddSingleton<ClipboardViewModel>();

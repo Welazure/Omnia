@@ -83,6 +83,16 @@ public sealed class ServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public async Task AddOmniaClient_ResolvesAutoSyncServices()
+    {
+        await using var provider = BuildProvider();
+
+        Assert.NotNull(provider.GetRequiredService<IAutoSyncSettings>());
+        Assert.NotNull(provider.GetRequiredService<ClipboardSyncCoordinator>());
+        Assert.NotNull(provider.GetRequiredService<ClipboardDebounceDelay>());
+    }
+
+    [Fact]
     public async Task AddOmniaClient_AppliesConfigureToResolvedOptions()
     {
         var services = new ServiceCollection();
