@@ -98,11 +98,58 @@ public sealed class ShellViewModelTests
         Assert.Equal(1, raised);
     }
 
-    private static (ShellViewModel Shell, FakePageFactory Pages, FakeTokenStore TokenStore, FakeClipSyncService ClipSync) Create()
+    [Fact]
+    public async Task ShowWorkspace_SupportedHead_StartsAutoSyncMonitor()
+    {
+        var monitor = new FakeClipboardMonitor();
+        var (shell, _, tokenStore, _) = Create(monitor, ClipboardCapability.Supported);
+        tokenStore.Token = "stored-token";
+
+        await shell.ShowWorkspaceAsync(CancellationToken.None);
+
+        Assert.Equal(1, monitor.StartCalls);
+    }
+
+    [Fact]
+    public async Task ShowWorkspace_ManualHead_DoesNotStartAutoSyncMonitor()
+    {
+        var monitor = new FakeClipboardMonitor();
+        var (shell, _, tokenStore, _) = Create(monitor, ClipboardCapability.Manual);
+        tokenStore.Token = "stored-token";
+
+        await shell.ShowWorkspaceAsync(CancellationToken.None);
+
+        Assert.Equal(0, monitor.StartCalls);
+    }
+
+    [Fact]
+    public async Task ShowLogin_StopsAutoSyncMonitor()
+    {
+        var monitor = new FakeClipboardMonitor();
+        var (shell, _, tokenStore, _) = Create(monitor, ClipboardCapability.Supported);
+        tokenStore.Token = "stored-token";
+        await shell.ShowWorkspaceAsync(CancellationToken.None);
+
+        shell.ShowLogin();
+
+        Assert.Equal(1, monitor.DisposeCalls);
+    }
+
+    private static (ShellViewModel Shell, FakePageFactory Pages, FakeTokenStore TokenStore, FakeClipSyncService ClipSync) Create(
+        FakeClipboardMonitor? monitor = null,
+        ClipboardCapability capability = ClipboardCapability.Supported)
     {
         var pages = new FakePageFactory();
         var tokenStore = new FakeTokenStore();
         var clipSync = new FakeClipSyncService();
-        return (new ShellViewModel(pages, tokenStore, clipSync, NullLogger<ShellViewModel>.Instance), pages, tokenStore, clipSync);
+        var coordinator = new ClipboardSyncCoordinator(
+            monitor ?? new FakeClipboardMonitor(),
+            new FakeAutoSyncSettings(),
+            tokenStore,
+            new FakeRealtimeClient(),
+            new FakeApiClient(),
+            new FakeClipboardDebounceDelay().WaitAsync,
+            NullLogger<ClipboardSyncCoordinator>.Instance);
+        return (new ShellViewModel(pages, tokenStore, clipSync, coordinator, capability, NullLogger<ShellViewModel>.Instance), pages, tokenStore, clipSync);
     }
 }

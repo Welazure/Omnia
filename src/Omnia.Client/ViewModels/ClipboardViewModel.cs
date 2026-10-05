@@ -13,8 +13,10 @@ public partial class ClipboardViewModel : ViewModelBase
     private readonly INavigationService navigation;
     private readonly ToastDelay toastDelay;
     private readonly IUiDispatcher dispatcher;
+    private readonly IAutoSyncSettings autoSyncSettings;
 
     private int toastGeneration;
+    private bool loadingAutoSync;
 
     public ClipboardViewModel(
         IApiClient apiClient,
@@ -22,7 +24,8 @@ public partial class ClipboardViewModel : ViewModelBase
         IClipboardService clipboardService,
         INavigationService navigation,
         ToastDelay toastDelay,
-        IUiDispatcher dispatcher)
+        IUiDispatcher dispatcher,
+        IAutoSyncSettings autoSyncSettings)
     {
         this.apiClient = apiClient;
         this.clipSyncService = clipSyncService;
@@ -30,11 +33,14 @@ public partial class ClipboardViewModel : ViewModelBase
         this.navigation = navigation;
         this.toastDelay = toastDelay;
         this.dispatcher = dispatcher;
+        this.autoSyncSettings = autoSyncSettings;
 
         clipSyncService.ClipsChanged += HandleClipsChanged;
         clipSyncService.StatusChanged += HandleStatusChanged;
         Status = clipSyncService.Status;
+        RefreshAutoSyncStatus();
         RebuildClips();
+        _ = LoadAutoSyncAsync();
     }
 
     public ObservableCollection<ClipListItem> Clips { get; } = [];
@@ -56,6 +62,12 @@ public partial class ClipboardViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial string? ToastMessage { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsAutoSyncEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string AutoSyncStatusText { get; set; } = "Auto-sync on";
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
@@ -145,9 +157,51 @@ public partial class ClipboardViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(IsConnected));
         OnPropertyChanged(nameof(IsReconnecting));
+        RefreshAutoSyncStatus();
+    }
+
+    partial void OnIsAutoSyncEnabledChanged(bool value)
+    {
+        RefreshAutoSyncStatus();
+
+        if (!loadingAutoSync)
+        {
+            _ = PersistAutoSyncAsync(value);
+        }
     }
 
     partial void OnErrorMessageChanged(string? value) => OnPropertyChanged(nameof(HasError));
+
+    private async Task LoadAutoSyncAsync()
+    {
+        var enabled = await autoSyncSettings.GetEnabledAsync();
+
+        loadingAutoSync = true;
+        IsAutoSyncEnabled = enabled;
+        loadingAutoSync = false;
+
+        RefreshAutoSyncStatus();
+    }
+
+    private async Task PersistAutoSyncAsync(bool enabled)
+    {
+        try
+        {
+            await autoSyncSettings.SetEnabledAsync(enabled);
+        }
+        catch (Exception)
+        {
+            // A settings-file failure must not take the UI down; surface it instead.
+            AutoSyncStatusText = "Couldn't save auto-sync setting";
+        }
+    }
+
+    private void RefreshAutoSyncStatus()
+    {
+        AutoSyncStatusText = IsAutoSyncEnabled
+            ? IsConnected ? "Auto-sync on" : "Auto-sync on - offline"
+            : "Auto-sync paused";
+    }
 
     private void HandleClipsChanged(object? sender, EventArgs e) => dispatcher.Post(RebuildClips);
 

@@ -43,4 +43,14 @@ public sealed class ThemeTests
 
         Assert.Contains("#000000", xaml);
     }
+
+    [Fact]
+    public void ClipboardView_BindsAutoSyncToggleAndStatus()
+    {
+        var xaml = File.ReadAllText(TestPaths.ClientFile("Views/ClipboardView.axaml"));
+
+        Assert.Contains("ToggleSwitch", xaml);
+        Assert.Contains("IsAutoSyncEnabled", xaml);
+        Assert.Contains("AutoSyncStatusText", xaml);
+    }
 }

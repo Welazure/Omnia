@@ -9,17 +9,23 @@ public partial class ShellViewModel : ViewModelBase, INavigationService
     private readonly IPageFactory pageFactory;
     private readonly ITokenStore tokenStore;
     private readonly IClipSyncService clipSyncService;
+    private readonly ClipboardSyncCoordinator autoSyncCoordinator;
+    private readonly ClipboardCapability clipboardCapability;
     private readonly ILogger<ShellViewModel> logger;
 
     public ShellViewModel(
         IPageFactory pageFactory,
         ITokenStore tokenStore,
         IClipSyncService clipSyncService,
+        ClipboardSyncCoordinator autoSyncCoordinator,
+        ClipboardCapability clipboardCapability,
         ILogger<ShellViewModel> logger)
     {
         this.pageFactory = pageFactory;
         this.tokenStore = tokenStore;
         this.clipSyncService = clipSyncService;
+        this.autoSyncCoordinator = autoSyncCoordinator;
+        this.clipboardCapability = clipboardCapability;
         this.logger = logger;
     }
 
@@ -54,14 +60,35 @@ public partial class ShellViewModel : ViewModelBase, INavigationService
         if (!string.IsNullOrWhiteSpace(token))
         {
             await clipSyncService.StartAsync(token, cancellationToken);
+            StartAutoSync();
         }
 
         Navigate(pageFactory.CreateWorkspace());
     }
 
-    public void ShowLogin() => Navigate(pageFactory.CreateLogin());
+    public void ShowLogin()
+    {
+        StopAutoSync();
+        Navigate(pageFactory.CreateLogin());
+    }
 
     public void ShowAccount() => Navigate(pageFactory.CreateAccount());
+
+    private void StartAutoSync()
+    {
+        // A Manual head cannot read the clipboard continuously, so it never starts the monitor.
+        if (clipboardCapability != ClipboardCapability.Manual)
+        {
+            autoSyncCoordinator.Start();
+        }
+    }
+
+    private void StopAutoSync()
+    {
+        // Navigation is synchronous; the monitor teardown is best effort and the token/connection
+        // gates already block uploads and applies once signed out.
+        _ = autoSyncCoordinator.StopAsync();
+    }
 
     private void Navigate(ViewModelBase page)
     {

@@ -42,6 +42,10 @@ public sealed class ClipboardSyncCoordinator : IAsyncDisposable
 
     public void Start() => monitor.Start();
 
+    // Stops polling until the next Start. The monitor recreates its loop on restart, so sign-out
+    // followed by a later sign-in re-enables auto-sync.
+    public Task StopAsync() => monitor.DisposeAsync().AsTask();
+
     public ValueTask DisposeAsync()
     {
         monitor.ClipboardTextChanged -= HandleClipboardTextChanged;

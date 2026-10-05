@@ -36,6 +36,17 @@
         </Grid>
 
         <StackPanel Grid.Row="1" Margin="16,4,16,8" Spacing="6">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <ToggleSwitch IsChecked="{Binding IsAutoSyncEnabled}"
+                              OnContent=""
+                              OffContent=""
+                              Foreground="#FFFFFF"
+                              VerticalAlignment="Center" />
+                <TextBlock Text="{Binding AutoSyncStatusText}"
+                           Foreground="#9E9E9E"
+                           FontSize="12"
+                           VerticalAlignment="Center" />
+            </StackPanel>
             <TextBox x:Name="ClipInput"
                      Text="{Binding Input}"
                      PlaceholderText="Type a clip and press Enter"

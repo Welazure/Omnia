@@ -184,8 +184,114 @@ public sealed class ClipboardViewModelTests
         Assert.Equal(1, navigation.ShowAccountCalls);
     }
 
+    [Fact]
+    public void AutoSync_DefaultsToEnabled()
+    {
+        var (viewModel, _, _, _, _) = Create();
+
+        Assert.True(viewModel.IsAutoSyncEnabled);
+    }
+
+    [Fact]
+    public void AutoSync_StoredDisabledState_IsLoaded()
+    {
+        var settings = new FakeAutoSyncSettings { IsEnabled = false };
+
+        var (viewModel, _, _, _, _) = Create(settings: settings);
+
+        Assert.False(viewModel.IsAutoSyncEnabled);
+    }
+
+    [Fact]
+    public void AutoSync_LoadingStoredState_DoesNotRewriteSettings()
+    {
+        var settings = new FakeAutoSyncSettings { IsEnabled = false };
+
+        Create(settings: settings);
+
+        Assert.Equal(0, settings.SetCalls);
+    }
+
+    [Fact]
+    public void AutoSync_Toggle_PersistsThroughSettings()
+    {
+        var settings = new FakeAutoSyncSettings();
+        var (viewModel, _, _, _, _) = Create(settings: settings);
+
+        viewModel.IsAutoSyncEnabled = false;
+
+        Assert.Equal(1, settings.SetCalls);
+        Assert.False(settings.IsEnabled);
+    }
+
+    [Fact]
+    public void AutoSyncStatus_Disabled_ShowsPaused()
+    {
+        var (viewModel, _, _, _, _) = Create(settings: new FakeAutoSyncSettings { IsEnabled = false });
+
+        Assert.Equal("Auto-sync paused", viewModel.AutoSyncStatusText);
+    }
+
+    [Fact]
+    public void AutoSyncStatus_EnabledConnected_ShowsOn()
+    {
+        var (viewModel, _, clipSync, _, _) = Create();
+
+        clipSync.Status = ConnectionStatus.Connected;
+
+        Assert.Equal("Auto-sync on", viewModel.AutoSyncStatusText);
+    }
+
+    [Fact]
+    public void AutoSyncStatus_EnabledOffline_ShowsOffline()
+    {
+        var (viewModel, _, _, _, _) = Create();
+
+        Assert.Equal("Auto-sync on - offline", viewModel.AutoSyncStatusText);
+    }
+
+    [Fact]
+    public async Task Paused_SubmitStillCreatesClip()
+    {
+        var (viewModel, api, _, _, _) = Create(settings: new FakeAutoSyncSettings { IsEnabled = false });
+        viewModel.Input = "hello";
+
+        await viewModel.SubmitCommand.ExecuteAsync(null);
+
+        Assert.Equal(1, api.CreateCalls);
+        Assert.Equal("hello", api.LastCreateContent);
+    }
+
+    [Fact]
+    public async Task Paused_CopyStillWritesClipboard()
+    {
+        var (viewModel, _, _, clipboard, _) = Create(
+            settings: new FakeAutoSyncSettings { IsEnabled = false },
+            clips: [Clip("hello")]);
+
+        await viewModel.CopyClipCommand.ExecuteAsync(viewModel.Clips[0]);
+
+        Assert.Equal(1, clipboard.SetTextCalls);
+        Assert.Equal("hello", clipboard.LastText);
+    }
+
+    [Fact]
+    public async Task Paused_DeleteStillRemovesClip()
+    {
+        var first = Clip("first");
+        var (viewModel, api, _, _, _) = Create(
+            settings: new FakeAutoSyncSettings { IsEnabled = false },
+            clips: [first]);
+
+        await viewModel.DeleteClipCommand.ExecuteAsync(viewModel.Clips[0]);
+
+        Assert.Equal(1, api.DeleteCalls);
+        Assert.Empty(viewModel.Clips);
+    }
+
     private static (ClipboardViewModel ViewModel, FakeApiClient Api, FakeClipSyncService ClipSync, FakeClipboardService Clipboard, FakeNavigationService Navigation) Create(
         ToastDelay? delay = null,
+        FakeAutoSyncSettings? settings = null,
         params ClipDto[] clips)
     {
         var api = new FakeApiClient();
@@ -198,7 +304,8 @@ public sealed class ClipboardViewModelTests
             clipboard,
             navigation,
             delay ?? (_ => Task.CompletedTask),
-            new FakeUiDispatcher());
+            new FakeUiDispatcher(),
+            settings ?? new FakeAutoSyncSettings());
         return (viewModel, api, clipSync, clipboard, navigation);
     }
 

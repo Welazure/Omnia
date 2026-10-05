@@ -15,6 +15,8 @@ public partial class App : Application
 
     public static Action<IServiceCollection>? ConfigurePlatformServices { get; set; }
 
+    public static ClipboardCapability ClipboardCapability { get; set; } = ClipboardCapability.Supported;
+
     private ServiceProvider? services;
 
     public override void Initialize()
@@ -28,13 +30,16 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         var collection = new ServiceCollection();
-        collection.AddOmniaClient(ConfigureClient);
+        collection.AddOmniaClient(ConfigureClient, ClipboardCapability);
         ConfigurePlatformServices?.Invoke(collection);
         services = collection.BuildServiceProvider();
 
         var shell = services.GetRequiredService<ShellViewModel>();
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger<App>();
         var clipboard = services.GetRequiredService<AvaloniaClipboardService>();
+
+        // Subscribe to incoming clips now; the applier then writes any clip another device creates.
+        services.GetRequiredService<RemoteClipApplier>();
         _ = StartShellAsync(shell, logger);
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

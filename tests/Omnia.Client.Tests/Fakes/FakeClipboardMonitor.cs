@@ -8,9 +8,15 @@ public sealed class FakeClipboardMonitor : IClipboardMonitor
 
     public int StartCalls { get; private set; }
 
+    public int DisposeCalls { get; private set; }
+
     public void Start() => StartCalls++;
 
     public void RaiseClipboardTextChanged(string text) => ClipboardTextChanged?.Invoke(this, text);
 
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public ValueTask DisposeAsync()
+    {
+        DisposeCalls++;
+        return ValueTask.CompletedTask;
+    }
 }
