@@ -8,7 +8,10 @@ public static class ServiceCollectionExtensions
 {
     private static readonly TimeSpan ToastDuration = TimeSpan.FromSeconds(2);
 
-    public static IServiceCollection AddOmniaClient(this IServiceCollection services, Action<ApiOptions>? configure = null)
+    public static IServiceCollection AddOmniaClient(
+        this IServiceCollection services,
+        Action<ApiOptions>? configure = null,
+        ClipboardCapability capability = ClipboardCapability.Supported)
     {
         var options = new ApiOptions { BaseUrl = ResolveBaseUrl() };
         configure?.Invoke(options);
@@ -25,7 +28,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IUiDispatcher, AvaloniaUiDispatcher>();
         services.AddSingleton<AvaloniaClipboardService>();
         services.AddSingleton<IClipboardService>(provider => provider.GetRequiredService<AvaloniaClipboardService>());
-        services.AddSingleton(typeof(ClipboardCapability), ClipboardCapability.Supported);
+        services.AddSingleton(typeof(ClipboardCapability), capability);
         services.AddSingleton<ClipboardWriteGuard>();
         services.AddSingleton<IClipboardTickSource>(_ => new PeriodicClipboardTickSource(PeriodicClipboardTickSource.DefaultInterval));
         services.AddSingleton<IClipboardMonitor, PollingClipboardMonitor>();

@@ -72,6 +72,19 @@ public sealed class ServiceCollectionExtensionsTests
         Assert.Equal(ClipboardCapability.Supported, provider.GetRequiredService<ClipboardCapability>());
     }
 
+    [Theory]
+    [InlineData(ClipboardCapability.Supported)]
+    [InlineData(ClipboardCapability.BestEffort)]
+    [InlineData(ClipboardCapability.Manual)]
+    public async Task AddOmniaClient_RequestedCapability_IsRegistered(ClipboardCapability capability)
+    {
+        var services = new ServiceCollection();
+        services.AddOmniaClient(options => options.BaseUrl = "http://localhost:9999", capability);
+        await using var provider = services.BuildServiceProvider();
+
+        Assert.Equal(capability, provider.GetRequiredService<ClipboardCapability>());
+    }
+
     [Fact]
     public async Task AddOmniaClient_ResolvesClipboardMonitorServices()
     {

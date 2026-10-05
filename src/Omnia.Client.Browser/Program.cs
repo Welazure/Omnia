@@ -14,6 +14,9 @@ internal sealed partial class Program
         App.ConfigureClient = options => options.ForceWebSockets = true;
         App.ConfigurePlatformServices = services => services.AddSingleton<ITokenStore, BrowserTokenStore>();
 
+        // The browser cannot read the clipboard without a user gesture, so it degrades to manual.
+        App.ClipboardCapability = ClipboardCapability.Manual;
+
         return BuildAvaloniaApp()
             .WithInterFont()
             .StartBrowserAppAsync("out");

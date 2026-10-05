@@ -2,6 +2,7 @@
 using Android.Runtime;
 using Avalonia;
 using Avalonia.Android;
+using Omnia.Client.Services;
 
 namespace Omnia.Client.Android
 {
@@ -14,6 +15,8 @@ namespace Omnia.Client.Android
 
         protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
         {
+            // Android clipboard reads are prompt-gated and may fail, so sync is best effort.
+            App.ClipboardCapability = ClipboardCapability.BestEffort;
             return base.CustomizeAppBuilder(builder)
             .WithInterFont();
         }
