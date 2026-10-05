@@ -41,7 +41,9 @@ Omnia.sln
 │  └─ Omnia.Client/          # Avalonia UI (shared: all UI and logic live here)
 │       Views/      LoginView, ClipboardView, AccountView
 │       ViewModels/ LoginViewModel, ClipboardViewModel, AccountViewModel
-│       Services/   IApiClient, IRealtimeClient, IClipboardService, ITokenStore
+│       Services/   IApiClient, IRealtimeClient, IClipboardService, ITokenStore,
+│                   IClipboardMonitor, ClipboardSyncCoordinator, RemoteClipApplier,
+│                   IAutoSyncSettings, ClipboardCapability
 │       App.axaml
 ├─ src/
 │  ├─ Omnia.Client.Desktop/  # platform head
@@ -140,7 +142,8 @@ Screens:
 1. **Login / Register** — email and password fields, toggle between sign in and sign up.
 2. **Clipboard (main workspace)** — opens to an autofocused text field. A list of clips below, newest first.
    Tap a clip to copy it to the OS clipboard (with a transient toast). Swipe a clip to delete it locally and on the
-   server. A read-only connection indicator shows Connected (green) or Reconnecting (orange).
+   server. A read-only connection indicator shows Connected (green) or Reconnecting (orange). An auto-sync toggle
+   (on by default) pauses/resumes OS-clipboard sync, with a status line beside it; the choice is persisted.
 3. **Account** — shows the signed-in email and a sign-out button.
 
 Client services:
@@ -149,8 +152,14 @@ Client services:
 |------------------|-----------------------------------------------------------------------|
 | `IApiClient`     | Typed `HttpClient`: register, login, get/create/delete clips          |
 | `IRealtimeClient`| Wraps `HubConnection`: connect with token, raise clip events           |
-| `IClipboardService` | Sets text on the OS clipboard (platform-specific implementation)   |
+| `IClipboardService` | Reads/sets text on the OS clipboard (platform-specific implementation) |
 | `ITokenStore`    | Persists and reads the JWT across platforms                            |
+| `IClipboardMonitor` | Polls the OS clipboard and raises a change event for external edits  |
+| `ClipboardWriteGuard` | Marks a value Omnia wrote so the monitor never re-raises it        |
+| `ClipboardSyncCoordinator` | Debounces local changes and uploads them when enabled             |
+| `RemoteClipApplier` | Writes a clip created on another device to the local clipboard      |
+| `IAutoSyncSettings` | Persists the pause/resume toggle (default on)                       |
+| `ClipboardCapability` | Per-head tier (Supported / BestEffort / Manual) gating the monitor |
 
 ViewModels use `[ObservableProperty]` and `[RelayCommand]` from CommunityToolkit.Mvvm.
 
@@ -162,8 +171,29 @@ ViewModels use `[ObservableProperty]` and `[RelayCommand]` from CommunityToolkit
   `OnClipCreated` to the user's group → every device (including the sender) appends the returned clip.
 - **Delete clip:** swiping calls `DELETE /clips/{id}` → server deletes and broadcasts `OnClipDeleted` → every device
   removes the clip.
+- **Auto-upload:** an external change to the OS clipboard raises `IClipboardMonitor.ClipboardTextChanged`; the
+  `ClipboardSyncCoordinator` debounces it and, when auto-sync is on and the client is connected and authenticated,
+  sends `POST /clips` once. The value is recorded in the `ClipboardWriteGuard` so it is never re-uploaded.
+- **Auto-apply:** an `OnClipCreated` event from another device is written to the local OS clipboard through the write
+  guard, so applying it cannot echo back as an upload. A clip authored by this device (matching its `DeviceId`) is
+  ignored. Pausing auto-sync disables both directions; the manual list keeps working.
 - **Reconnect:** on a dropped connection the client shows Reconnecting (orange), retries, then re-fetches `GET /clips`
   to resync once reconnected.
+
+### Clipboard Sync Tiers
+
+Continuous clipboard reads are not available on every platform, so each head declares a `ClipboardCapability` and the
+session only starts the monitor for heads that can read it:
+
+| Head    | Tier        | Effect                                                          |
+|---------|-------------|-----------------------------------------------------------------|
+| Desktop | Supported   | Monitor runs; full two-way automatic sync.                      |
+| Android | BestEffort  | Monitor runs; the OS may prompt for or drop background reads.   |
+| iOS     | Manual      | Monitor does not run; sync is manual.                           |
+| Browser | Manual      | Monitor does not run (the clipboard needs a user gesture).      |
+
+Echo suppression has two layers: the `ClipboardWriteGuard` stops a value Omnia wrote from being re-read as an
+external change, and the server skips a clip identical to the account's newest one so re-copies do not accumulate.
 
 ## Security
 

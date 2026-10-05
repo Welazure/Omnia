@@ -4,7 +4,9 @@ Omnia is a cross-platform synchronized clipboard. Sign in with an email and pass
 device signed into that account shares one real-time clip list. Type short text, a URL, or a note on your phone and
 it appears on your laptop within seconds.
 
-The account is the sync channel, so there is no room PIN, no pairing step, and nothing to configure between devices.
+On supported devices Omnia also syncs the OS clipboard itself: copy text anywhere and it propagates to your other
+devices automatically, and a clip created on another device is written straight to this device's clipboard. The
+account is the sync channel, so there is no room PIN, no pairing step, and nothing to configure between devices.
 
 ## Stack
 
@@ -91,6 +93,26 @@ dotnet build src/Omnia.Client.iOS -t:Run -f net10.0-ios
 Point any head at a non-default API with the `OMNIA_API_BASE_URL` environment variable. The Browser head forces the
 SignalR WebSockets transport (skipping negotiation), which is required for WebAssembly.
 
+## Automatic Clipboard Sync
+
+In addition to the manual clip list, Omnia can sync the OS clipboard itself. When auto-sync is on, copying text on
+one device uploads it and it is written to the OS clipboard of the account's other devices — no clicking required.
+The workspace has a toggle to pause and resume this; auto-sync is **on by default**, and the choice is remembered
+across restarts. Pausing stops both directions (nothing is uploaded and nothing is applied); the manual list, text
+box, and Copy/Delete keep working while paused.
+
+Continuous clipboard reading is not possible everywhere, so each head declares a capability tier:
+
+| Head    | Tier        | Behavior                                                              |
+|---------|-------------|-----------------------------------------------------------------------|
+| Desktop | Supported   | Polls the OS clipboard; full two-way automatic sync.                  |
+| Android | BestEffort  | Attempts automatic sync; the OS may prompt or drop background reads.  |
+| iOS     | Manual      | Clipboard reads are prompt-gated, so sync is manual.                  |
+| Browser | Manual      | The clipboard cannot be read without a user gesture, so sync is manual.|
+
+A value Omnia writes to the clipboard is suppressed so it is never re-uploaded, and the server skips a clip that is
+identical to the account's newest one, so re-copies do not pile up.
+
 ## Configuration
 
 Server settings come from environment variables (as in the local-run example above):
@@ -172,7 +194,10 @@ Omnia.slnx
 2. **Connect** — the client opens a SignalR connection to `/hubs/clips`, authenticated with the JWT.
 3. **Sync** — typing a clip sends `POST /clips`; the server saves it and broadcasts `OnClipCreated` to every device
    on that account. Swiping a clip sends `DELETE /clips/{id}` and broadcasts `OnClipDeleted`.
-4. **Recover** — if the connection drops, the client shows Reconnecting, retries, and re-fetches `GET /clips` once it
+4. **Auto-sync** — on a supported head, a change to the OS clipboard is uploaded automatically, and an incoming
+   clip from another device is written to the local OS clipboard. Values Omnia itself wrote are suppressed so they
+   are not echoed back; the pause toggle turns this off in both directions.
+5. **Recover** — if the connection drops, the client shows Reconnecting, retries, and re-fetches `GET /clips` once it
    is back online.
 
 ## Troubleshooting
